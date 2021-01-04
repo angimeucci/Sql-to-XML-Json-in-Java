@@ -1,21 +1,14 @@
 import java.sql.*;
+import java.util.*;
 public class EsempioDB {
-     public static void main(String[] args)
+     public Vector takevalue()
     {
+        Vector v = new Vector();
         persona p = new persona();
         //carico il driver
-        String DRIVER = "com.mysql.jdbc.Driver";
-        try
-        {
-            Class.forName(DRIVER);
-        }
-        catch(ClassNotFoundException e)
-        {
-            System.out.println("Driver non trovato" + e);
-            System.exit(1);
-        }
+        System.setProperty("jdbc.drivers", "sun.jdbc.odbc.JdbcOdbcDriver");
         //nome e indirizzo database
-        String URL_miodb = "jdbc:mysql://localhost:3306/provejava";
+        String URL_miodb = "jdbc:mysql://localhost:3306/esempiodb?serverTimezone=UTC&useLegacyDatetimeCode=false";
         //definizione delle query
         String query = "SELECT nome, cognome FROM persona";
         //stabilisco la connessione
@@ -23,7 +16,7 @@ public class EsempioDB {
         Connection connessione = null;
         try
         {
-            connessione = DriverManager.getConnection(URL_miodb, "root", "");
+            connessione = DriverManager.getConnection(URL_miodb, "root", "root");
         }
         catch(Exception e)
         {
@@ -36,13 +29,10 @@ public class EsempioDB {
             Statement statement = connessione.createStatement();
             //interrogo il database con una query
             ResultSet resultset = statement.executeQuery(query);
-            while(resultset.next())
-            {
-                p.nome = resultset.getString(1);
-                p.cognome = resultset.getString(2);
-                System.out.println("INFORMAZIONI");
-                System.out.println("Cognome: " + p.getCognome());
-                System.out.println("Nome :" + p.getNome());
+            while (resultset.next()) {
+              for (int i = 1; i <= 2; i++){
+                 v.add(resultset.getString(i));
+              }
             }
         }
         catch(Exception e)
@@ -63,6 +53,6 @@ public class EsempioDB {
                 }
             }
         }
+       return v;
     }
 }
-

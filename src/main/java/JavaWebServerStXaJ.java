@@ -1,6 +1,7 @@
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
+import java.beans.XMLEncoder;
 import java.math.BigDecimal;
 import java.io.*;
 import java.net.*;
@@ -70,7 +71,7 @@ public class JavaWebServerStXaJ implements Runnable{
 			fileRequested = parse.nextToken().toLowerCase();
 			
 			// we support only GET and HEAD methods, we check
-			if (!method.equals("GET")  &&  !method.equals("HEAD")) {
+			                  if (!method.equals("GET")  &&  !method.equals("HEAD")) {
                             if (verbose) {
                                     System.out.println("501 Not Implemented : " + method + " method.");
                             }
@@ -119,44 +120,70 @@ public class JavaWebServerStXaJ implements Runnable{
                             out.flush();
 
                             if (verbose) System.out.println("File " + fileRequested + " not found");
-                        }else if (fileRequested.endsWith("/db/person-xml")){
-                            try {
-                                String nomeFileXML = fileRequested.substring(fileRequested.indexOf("/db/")+4)+".xml";
-                                File fileXML = new File(WEB_ROOT, nomeFileXML);
-                                EsempioDB p1= new EsempioDB();
+                          
+                        }else if (fileRequested.endsWith("/db")){
+                            EsempioDB database = new EsempioDB();
+                            Vector v = new Vector();
+                            v = database.takevalue();
+                            System.out.println("Current saved elements: "+ v.get(1) + " " + v.get(2)); 
+                            
+                        }else if (fileRequested.endsWith("/db/persona-xml")){
+                            EsempioDB database = new EsempioDB();
+                            Vector v = new Vector();
+                            v = database.takevalue();
+                            
+                            XmlMapper xmlMapper = new XmlMapper();
+                            xmlMapper.writeValue(new File("dbxml.xml"), v);
+                            File fileinxml = new File("dbxml.xml");
+                            File file = new File(WEB_ROOT, FILE_NOT_FOUND);
+                            int fileLength = (int) file.length();
+                            String content = "application/xml";
+                            String xml = xmlMapper.writeValueAsString(v);
+                            
+                            out.println("HTTP/1.1 200 OK");
+                            out.println("Location: " + fileRequested);
+                            out.println("Server: Java HTTP Server from SSaurel : 1.0");
+                            out.println("Date: " + new Date());
+                            out.println("Content-type: " + "application/xml");
+                            out.println("Content-length: " + content);
+                            out.println(); // blank line between headers and content, very important !
+                            out.flush(); // flush character output stream buffer
 
-                                java.util.Vector <persona> allp = p1.readAll();
-                                XmlMapper xmlMapper = new XmlMapper();
-                                xmlMapper.writeValue(new File("prova.xml"), allp);
-                                File fileinxml = new File("prova.xml");
+                            out.write(xml);
+                            out.flush();
 
-                                int fileLength = (int) fileXML.length();
-                                byte[] fileData = readFileData(fileXML, fileLength);
-                                dataOut.write(fileData, 0, fileLength);
-                                dataOut.flush();
-                            } catch (Throwable e) {
-                                // TODO Auto-generated catch block
-                                e.getMessage();
-                            }
-                        }
-                        else if (fileRequested.endsWith("/db/person-json")) {
+                            if (verbose) System.out.println("File " + fileRequested + " not found");
+                          
+                        }else if (fileRequested.endsWith("/db/persona-json")) {
+                            EsempioDB database = new EsempioDB();
+                            Vector v = new Vector();
+                            v = database.takevalue();
                             try {
-                                String nomeFileJSON=fileRequested.substring(fileRequested.indexOf("/db/")+4)+".json";
-                                File fileJSON = new File(WEB_ROOT, nomeFileJSON);
-                                EsempioDB p2= new EsempioDB();
-                                java.util.Vector <persona> allp= p2.readAll();
+                                File fileJSON = new File(WEB_ROOT, "dbjson.json");
                                 ObjectMapper objectMapper = new ObjectMapper();
-                                objectMapper.writeValue(new FileOutputStream(fileJSON), allp);
-                                File fileinjson = new File("prova.xml");
-
+                                objectMapper.writeValue(new FileOutputStream("dbjson.json"), v);
+                                File fileinjson = new File("dbjson.json");
                                 int fileLength = (int) fileJSON.length();
                                 byte[] fileData = readFileData(fileJSON, fileLength);
 
                                 dataOut.write(fileData, 0, fileLength);
                                 dataOut.flush();
-                            }catch (Throwable e){
-                                e.getMessage();
-                            } 
+                                
+                                out.println("HTTP/1.1 200 OK");
+                                out.println("Location: " + fileRequested);
+                                out.println("Server: Java HTTP Server from SSaurel : 1.0");
+                                out.println("Date: " + new Date());
+                                out.println("Content-type: " + "application/xml");
+                                out.println("Content-length: " + "application/json");
+                                out.println(); // blank line between headers and content, very important !
+                                out.flush(); // flush character output stream buffer
+
+                                out.write(fileJSON.toString());
+                                out.flush();
+
+                                if (verbose) System.out.println("File " + fileRequested + " not found");
+                            }catch (Throwable e){e.getMessage();} 
+                            
                         } else {
                             // GET or HEAD method
                             if (fileRequested.endsWith("/")) {
