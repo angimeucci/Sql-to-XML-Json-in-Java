@@ -8,7 +8,7 @@ import java.net.*;
 import java.util.*;
 public class JavaWebServerStXaJ implements Runnable{ 
 	
-	static final File WEB_ROOT = new File("../");
+	static final File WEB_ROOT = new File("../src/main/resources");
 	static final String DEFAULT_FILE = "Sito/index.html";
 	static final String FILE_NOT_FOUND = "Sito/404.html";
 	static final String METHOD_NOT_SUPPORTED = "not_supported.html";
